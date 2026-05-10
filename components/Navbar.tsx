@@ -39,7 +39,7 @@ export default function Navbar() {
       </div>
 
       <nav className={scrolled ? "scrolled" : ""}>
-        <a href="#hero" className="nav-logo">YM<span>.</span></a>
+        <a href="#hero" className="nav-logo">YM<span>.dev</span></a>
         <ul className="nav-links">
           {navLinks.map((l) => (
             <li key={l.href}>

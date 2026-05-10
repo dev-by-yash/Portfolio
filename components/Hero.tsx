@@ -61,7 +61,7 @@ export default function Hero() {
         </div>
 
         {/* Stats */}
-        <div style={{ padding: "0 48px", marginTop: 72 }}>
+        <div style={{ padding: "0 24px", marginTop: 72 }}>
           <div className="hero-stats">
             {stats.map((s) => (
               <div className="stat-item" key={s.label}>

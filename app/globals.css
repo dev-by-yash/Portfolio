@@ -259,10 +259,17 @@ h1.hero-title .accent { color: var(--accent); }
   border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
   opacity: 0; animation: fadeUp 0.9s 1s forwards;
 }
-.stat-item { background: var(--bg); padding: 28px 32px; transition: background 0.3s; }
+.stat-item {
+  background: var(--bg); padding: 24px 20px;
+  transition: background 0.3s; min-width: 0;
+}
 .stat-item:hover { background: var(--surface2); }
-.stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.2rem; color: var(--accent); line-height: 1; margin-bottom: 6px; }
-.stat-label { font-size: 0.8rem; color: var(--text2); font-family: 'DM Mono', monospace; }
+.stat-num {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(1.4rem, 4vw, 2.2rem); color: var(--accent); line-height: 1;
+  margin-bottom: 6px; white-space: nowrap;
+}
+.stat-label { font-size: 0.75rem; color: var(--text2); font-family: 'DM Mono', monospace; line-height: 1.4; }
 
 /* About */
 .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
@@ -501,7 +508,7 @@ footer {
   .projects-grid .project-card:nth-child(3) { grid-column: 1 / -1; flex-direction: column; }
   .projects-grid .project-card:nth-child(3) .project-card-bot { border-top: 1px solid var(--border); border-left: none; flex-direction: row; justify-content: space-between; min-width: unset; }
   .hero-inner { grid-template-columns: 1fr; gap: 60px; }
-  .hero-visual { justify-content: flex-start; }
+  .hero-visual { justify-content: center; }
   .profile-frame { width: 280px; height: 340px; }
 }
 @media (max-width: 768px) {
@@ -521,8 +528,15 @@ footer {
   .achievements-grid { grid-template-columns: 1fr; }
   footer { flex-direction: column; gap: 12px; text-align: center; }
   .profile-frame { width: 240px; height: 290px; }
-  .profile-card.card-2 { right: -10px; }
-  .profile-card.card-1 { left: -10px; }
+  .profile-card.card-2 { right: 0; top: -10px; }
+  .profile-card.card-1 { left: 0; bottom: -10px; }
   #contact { padding: 80px 24px; }
   .contact-title { font-size: 2.5rem; }
+}
+
+@media (max-width: 400px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .stat-item { padding: 16px 12px; }
+  .stat-num { font-size: 1.3rem; }
+  .stat-label { font-size: 0.65rem; }
 }

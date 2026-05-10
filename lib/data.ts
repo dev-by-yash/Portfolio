@@ -9,9 +9,9 @@ export const navLinks = [
 
 export const stats = [
   { num: "8.81", label: "Diploma CGPA" },
-  { num: "8.52", label: "BE CGPA" },
-  { num: "3+", label: "Projects Shipped" },
-  { num: "2", label: "Hackathons" },
+  { num: "8.05", label: "BE CGPA" },
+  { num: "5+", label: "Projects Shipped" },
+  { num: "7", label: "Hackathons" },
 ];
 
 export const aboutCards = [
