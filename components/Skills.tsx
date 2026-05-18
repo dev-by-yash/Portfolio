@@ -30,7 +30,7 @@ export default function Skills() {
   }, []);
 
   return (
-    <section id="skills" className="section-pad" style={{ background: "var(--bg2)" }}>
+    <section id="skills" className="section-pad">
       <div className="container">
         <div className="section-header reveal">
           <div className="section-tag">Technical Skills</div>

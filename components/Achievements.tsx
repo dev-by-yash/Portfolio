@@ -11,7 +11,7 @@ const icons = [
 
 export default function Achievements() {
   return (
-    <section id="achievements" className="section-pad" style={{ background: "var(--bg2)" }}>
+    <section id="achievements" className="section-pad">
       <div className="container">
         <div className="section-header reveal">
           <div className="section-tag">Achievements</div>

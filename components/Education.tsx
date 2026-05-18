@@ -2,7 +2,7 @@ import { education } from "@/lib/data";
 
 export default function Education() {
   return (
-    <section id="education" className="section-pad" style={{ background: "var(--bg)" }}>
+    <section id="education" className="section-pad">
       <div className="container">
         <div className="section-header reveal">
           <div className="section-tag">Education</div>

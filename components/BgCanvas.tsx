@@ -2,82 +2,172 @@
 import { useEffect, useRef } from "react";
 
 export default function BgCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const glowRef = useRef<SVGCircleElement>(null);
+  const glowDivRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
+    const svg = svgRef.current;
+    const glowCircle = glowRef.current;
+    const glowDiv = glowDivRef.current;
+    const wrap = wrapRef.current;
+    if (!svg || !glowCircle || !glowDiv || !wrap) return;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
+    const SPACING = 34;
+    const INFLUENCE = 120;
+    const BASE_R = 1.4;
+    const MAX_R = 5.5;
+    const BASE_OPACITY = 0.1;
+    // accent color: grey = rgb(180,180,180)
+    const [gR, gG, gB] = [180, 180, 180];
 
-    class Particle {
-      x = 0; y = 0; size = 0; speedX = 0; speedY = 0; opacity = 0; color = "";
-      constructor() { this.reset(); }
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 1.5 + 0.3;
-        this.speedX = (Math.random() - 0.5) * 0.3;
-        this.speedY = (Math.random() - 0.5) * 0.3;
-        this.opacity = Math.random() * 0.5 + 0.1;
-        this.color = Math.random() > 0.7 ? "#e8ff47" : "#47c8ff";
-      }
-      update() {
-        this.x += this.speedX; this.y += this.speedY;
-        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
-      }
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = this.opacity;
-        ctx.fill();
+    let dotsG = svg.querySelector<SVGGElement>("#dots-g");
+    if (!dotsG) {
+      dotsG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      dotsG.setAttribute("id", "dots-g");
+      svg.insertBefore(dotsG, glowCircle);
+    }
+
+    type Dot = { el: SVGCircleElement; cx: number; cy: number; r: number; tr: number; gi: number; tgi: number };
+    let dots: Dot[] = [];
+    let mouse = { x: -9999, y: -9999 };
+    let rafId: number;
+
+    function buildDots() {
+      dotsG!.innerHTML = "";
+      dots = [];
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      svg!.setAttribute("viewBox", `0 0 ${vw} ${vh}`);
+      const cols = Math.ceil(vw / SPACING) + 1;
+      const rows = Math.ceil(vh / SPACING) + 1;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cx = c * SPACING;
+          const cy = r * SPACING;
+          const el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          el.setAttribute("cx", String(cx));
+          el.setAttribute("cy", String(cy));
+          el.setAttribute("r", String(BASE_R));
+          el.setAttribute("fill", `rgba(255,255,255,${BASE_OPACITY})`);
+          dotsG!.appendChild(el);
+          dots.push({ el, cx, cy, r: BASE_R, tr: BASE_R, gi: 0, tgi: 0 });
+        }
       }
     }
 
-    const particles: Particle[] = Array.from({ length: 120 }, () => new Particle());
-    let raf: number;
+    function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.globalAlpha = 1;
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            ctx.beginPath();
-            ctx.strokeStyle = "#e8ff47";
-            ctx.globalAlpha = (1 - dist / 120) * 0.06;
-            ctx.lineWidth = 0.5;
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
+    function onMove(clientX: number, clientY: number) {
+      mouse.x = clientX;
+      mouse.y = clientY;
+      glowCircle!.setAttribute("cx", String(clientX));
+      glowCircle!.setAttribute("cy", String(clientY));
+      glowDiv!.style.left = clientX + "px";
+      glowDiv!.style.top = clientY + "px";
+    }
+
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY);
+    const onMouseLeave = () => {
+      mouse.x = -9999; mouse.y = -9999;
+      glowCircle!.setAttribute("cx", "-999");
+      glowCircle!.setAttribute("cy", "-999");
+      glowDiv!.style.left = "-9999px";
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      onMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseleave", onMouseLeave);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    const ir2 = INFLUENCE * INFLUENCE;
+
+    function tick() {
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        const dx = d.cx - mouse.x;
+        const dy = d.cy - mouse.y;
+        const dist2 = dx * dx + dy * dy;
+
+        if (dist2 < ir2) {
+          const t = 1 - Math.sqrt(dist2) / INFLUENCE;
+          const e = t * t * (3 - 2 * t);
+          d.tr = BASE_R + (MAX_R - BASE_R) * e;
+          d.tgi = e;
+        } else {
+          d.tr = BASE_R;
+          d.tgi = 0;
+        }
+
+        d.r  = lerp(d.r,  d.tr,  0.14);
+        d.gi = lerp(d.gi, d.tgi, 0.14);
+
+        d.el.setAttribute("r", Math.max(0.1, d.r).toFixed(2));
+
+        if (d.gi > 0.015) {
+          const g = d.gi;
+          const rr = Math.round(gR * g + 255 * (1 - g));
+          const gg = Math.round(gG * g + 255 * (1 - g));
+          const bb = Math.round(gB * g + 255 * (1 - g));
+          const op = (BASE_OPACITY + (1 - BASE_OPACITY) * g).toFixed(2);
+          d.el.setAttribute("fill", `rgba(${rr},${gg},${bb},${op})`);
+        } else {
+          d.el.setAttribute("fill", `rgba(255,255,255,${BASE_OPACITY})`);
         }
       }
-      particles.forEach((p) => { p.update(); p.draw(); });
-      raf = requestAnimationFrame(animate);
-    };
-    animate();
+      rafId = requestAnimationFrame(tick);
+    }
+
+    buildDots();
+    rafId = requestAnimationFrame(tick);
+
+    const onResize = () => buildDots();
+    window.addEventListener("resize", onResize);
 
     return () => {
-      window.removeEventListener("resize", resize);
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      id="bg-canvas"
-      style={{ position: "fixed", inset: 0, zIndex: 0, opacity: 0.4, pointerEvents: "none" }}
-    />
+    <div ref={wrapRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {/* cursor glow div */}
+      <div
+        ref={glowDivRef}
+        style={{
+          position: "absolute",
+          width: 340, height: 340,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(180,180,180,0.12) 0%, transparent 70%)",
+          transform: "translate(-50%,-50%)",
+          pointerEvents: "none",
+          zIndex: 1,
+          left: -9999, top: -9999,
+          transition: "left 0.06s ease, top 0.06s ease",
+        }}
+      />
+      <svg
+        ref={svgRef}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <radialGradient id="rg-accent" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#b4b4b4" stopOpacity="1" />
+            <stop offset="100%" stopColor="#b4b4b4" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <g id="dots-g" />
+        <circle ref={glowRef} id="cursor-glow" cx="-999" cy="-999" r="110" fill="url(#rg-accent)" opacity="0.18" />
+      </svg>
+    </div>
   );
 }

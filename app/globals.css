@@ -452,7 +452,7 @@ h1.hero-title .accent { color: var(--accent); }
 .achievement-desc { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
 
 /* Contact */
-#contact { background: var(--bg); padding: 110px 48px; }
+/* #contact { padding: 110px 48px; } */
 .contact-inner { max-width: 900px; margin: 0 auto; text-align: center; }
 .contact-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: -0.03em; line-height: 1; margin-bottom: 24px; }
 .contact-title span { color: var(--accent); }

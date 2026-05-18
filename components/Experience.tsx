@@ -2,7 +2,7 @@ import { experience } from "@/lib/data";
 
 export default function Experience() {
   return (
-    <section id="experience" className="section-pad" style={{ background: "var(--bg)" }}>
+    <section id="experience" className="section-pad">
       <div className="container">
         <div className="section-header reveal">
           <div className="section-tag">Work Experience</div>

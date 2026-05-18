@@ -2,7 +2,7 @@ import { aboutCards } from "@/lib/data";
 
 export default function About() {
   return (
-    <section id="about" className="section-pad" style={{ background: "var(--bg)" }}>
+    <section id="about" className="section-pad">
       <div className="container">
         <div className="section-header reveal">
           <div className="section-tag">About Me</div>
