@@ -20,7 +20,7 @@ export default function Achievements() {
         <div className="achievements-grid">
           {achievements.map((a, i) => (
             <div className={`achievement-card reveal${i > 0 ? ` reveal-delay-${i}` : ""}`} key={a.title}>
-              <div className="achievement-icon">{icons[i]}</div>
+              {/* <div className="achievement-icon">{icons[i]}</div> */}
               <h4 className="achievement-title">{a.title}</h4>
               <div className="achievement-date">{a.date}</div>
               <p className="achievement-desc">{a.desc}</p>
