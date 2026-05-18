@@ -3,16 +3,12 @@ import { useEffect, useRef } from "react";
 
 export default function BgCanvas() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const glowRef = useRef<SVGCircleElement>(null);
-  const glowDivRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const svg = svgRef.current;
-    const glowCircle = glowRef.current;
-    const glowDiv = glowDivRef.current;
     const wrap = wrapRef.current;
-    if (!svg || !glowCircle || !glowDiv || !wrap) return;
+    if (!svg || !wrap) return;
 
     const SPACING = 34;
     const INFLUENCE = 120;
@@ -26,7 +22,7 @@ export default function BgCanvas() {
     if (!dotsG) {
       dotsG = document.createElementNS("http://www.w3.org/2000/svg", "g");
       dotsG.setAttribute("id", "dots-g");
-      svg.insertBefore(dotsG, glowCircle);
+      svg.appendChild(dotsG);
     }
 
     type Dot = { el: SVGCircleElement; cx: number; cy: number; r: number; tr: number; gi: number; tgi: number };
@@ -62,18 +58,11 @@ export default function BgCanvas() {
     function onMove(clientX: number, clientY: number) {
       mouse.x = clientX;
       mouse.y = clientY;
-      glowCircle!.setAttribute("cx", String(clientX));
-      glowCircle!.setAttribute("cy", String(clientY));
-      glowDiv!.style.left = clientX + "px";
-      glowDiv!.style.top = clientY + "px";
     }
 
     const onMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY);
     const onMouseLeave = () => {
       mouse.x = -9999; mouse.y = -9999;
-      glowCircle!.setAttribute("cx", "-999");
-      glowCircle!.setAttribute("cy", "-999");
-      glowDiv!.style.left = "-9999px";
     };
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
@@ -139,21 +128,6 @@ export default function BgCanvas() {
 
   return (
     <div ref={wrapRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
-      {/* cursor glow div */}
-      <div
-        ref={glowDivRef}
-        style={{
-          position: "absolute",
-          width: 340, height: 340,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(180,180,180,0.12) 0%, transparent 70%)",
-          transform: "translate(-50%,-50%)",
-          pointerEvents: "none",
-          zIndex: 1,
-          left: -9999, top: -9999,
-          transition: "left 0.06s ease, top 0.06s ease",
-        }}
-      />
       <svg
         ref={svgRef}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
@@ -166,7 +140,6 @@ export default function BgCanvas() {
           </radialGradient>
         </defs>
         <g id="dots-g" />
-        <circle ref={glowRef} id="cursor-glow" cx="-999" cy="-999" r="110" fill="url(#rg-accent)" opacity="0.18" />
       </svg>
     </div>
   );
