@@ -1,11 +1,14 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function BgCanvas() {
+  const isEnabled = typeof window !== "undefined" && !('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isEnabled) return;
+
     const svg = svgRef.current;
     const wrap = wrapRef.current;
     if (!svg || !wrap) return;
@@ -124,7 +127,9 @@ export default function BgCanvas() {
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("resize", onResize);
     };
-  }, []);
+  }, [isEnabled]);
+
+  if (!isEnabled) return null;
 
   return (
     <div ref={wrapRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
